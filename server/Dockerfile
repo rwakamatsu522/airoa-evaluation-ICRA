@@ -1,29 +1,41 @@
-FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
-COPY --from=ghcr.io/astral-sh/uv:0.5.1 /uv /uvx /bin/
+# CUDA 12.8 base image for Blackwell (RTX 5070 Ti / sm_120) compatibility.
+# Matches the hardware-specific note in docs/INTEGRATION_GUIDE.md §8.
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /workspace
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git git-lfs build-essential clang ca-certificates curl && \
-    rm -rf /var/lib/apt/lists/*
+    python3 python3-pip python3-venv python3-dev \
+    git git-lfs ca-certificates curl build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml uv.lock LICENSE README.md ./
+# Use a venv to isolate from system Python.
+RUN python3 -m venv /workspace/venv
+ENV PATH="/workspace/venv/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade pip
+
+# PyTorch with cu128 wheels — required for Blackwell kernels.
+RUN pip install --no-cache-dir \
+    torch==2.7.1 torchvision==0.22.1 \
+    --index-url https://download.pytorch.org/whl/cu128
+
+# LeRobot (with pi0 and dataset extras) + PEFT (LoRA) + WebSocket deps.
+# The `dataset` extra pulls in HuggingFace `datasets` which lerobot.datasets imports eagerly.
+RUN pip install --no-cache-dir \
+    "lerobot[pi,dataset]@git+https://github.com/huggingface/lerobot.git" \
+    peft \
+    msgpack \
+    websockets
+
 COPY packages/policy-client ./packages/policy-client
-COPY src/openpi ./src/openpi
+RUN pip install --no-cache-dir -e /workspace/packages/policy-client
+
+COPY src/lerobot_pi0_policy.py ./src/lerobot_pi0_policy.py
 COPY server ./server
 COPY runtime_core ./runtime_core
 
-# Create virtual environment and install locked deps including local workspace packages.
-RUN uv venv --python 3.11 /workspace/.venv
-RUN GIT_LFS_SKIP_SMUDGE=1 uv sync --frozen --no-dev
-RUN uv pip install --python /workspace/.venv/bin/python pytest
-
-# Support PyTorch checkpoints (same behavior as upstream serve_policy image).
-RUN /workspace/.venv/bin/python -c "import transformers; print(transformers.__file__)" | xargs dirname | xargs -I{} cp -r /workspace/src/openpi/models_pytorch/transformers_replace/* {}
-
-ENV PATH="/workspace/.venv/bin:${PATH}"
 ENV PYTHONPATH="/workspace:/workspace/src:/workspace/packages/policy-client/src"
-ENV OPENPI_DATA_HOME="/policy_assets"
 
+RUN chmod +x /workspace/server/entrypoint.sh
 ENTRYPOINT ["/workspace/server/entrypoint.sh"]

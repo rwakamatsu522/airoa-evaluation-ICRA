@@ -1,0 +1,28 @@
+# Model/checkpoint files (too large for git, uploaded to R2 instead)
+_checkpoint_build/
+checkpoint/
+checkpoints/
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# Docker caches
+.docker_cache/
+.cache/
+datasets/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.ruff_cache/
+.pytest_cache/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
