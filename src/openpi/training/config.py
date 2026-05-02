@@ -1097,6 +1097,38 @@ _CONFIGS = [
         num_workers=8, # Increase num_workers to speed up data loading with larger datasets.
         pytorch_weight_path="/home/user_00103_25b505/shared-storage/dev/models/pi05",
     ),
+    #
+    # Team 26 Round 5 submission: pi05 HSR task6911 fine-tune (binary_vg step 999).
+    #
+    TrainConfig(
+        name="pi05_hsr_task6911",
+        model=pi0_config.Pi0Config(
+            pi05=True,
+            action_dim=32,
+            action_horizon=16,
+        ),
+        data=LeRobotHSRDataConfig(
+            repo_id="task6911",
+            assets=AssetsConfig(
+                assets_dir="./assets/pi05_hsr_task6911",
+                asset_id="task6911",
+            ),
+            base_config=DataConfig(
+                prompt_from_task=True,
+            ),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=500,
+            peak_lr=2.5e-5,
+            decay_steps=30_000,
+            decay_lr=2.5e-6,
+        ),
+        batch_size=32,
+        num_workers=8,
+        num_train_steps=30_000,
+        wandb_enabled=False,
+    ),
     TrainConfig(
         name="pi0_task8",
         model=pi0_config.Pi0Config(paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"),

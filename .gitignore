@@ -1,0 +1,17 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local checkpoint (downloaded from R2, do NOT commit)
+checkpoint/
+
+# Local logs
+logs_docker_up.log
+*.log
+
+# Docker cache
+.docker_cache/
+
+# Local environment
+.venv/
+*.env
