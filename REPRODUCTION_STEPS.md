@@ -24,7 +24,7 @@ aws --endpoint-url https://eabeb2a5516ef53a191452e5714fc16b.r2.cloudflarestorage
     s3 sync s3://airoa-icra-team-26/team26-round5-checkpoint/ ./checkpoint/
 
 # 3. Env vars
-export POLICY_CHECKPOINT_DIR=$(pwd)/checkpoint
+export POLICY_CHECKPOINT_PATH=$(pwd)/checkpoint
 export POLICY_CONFIG_NAME=pi05_hsr_task6911
 
 # 4. Start (first build ~10–15 min, model load ~60 s)
