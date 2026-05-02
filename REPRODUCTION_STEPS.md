@@ -13,10 +13,9 @@
 ## 2. Steps
 
 ```bash
-# 1. Clone & checkout
+# 1. Clone (default branch is submission/round5)
 git clone https://github.com/rwakamatsu522/airoa-evaluation-ICRA.git
 cd airoa-evaluation-ICRA
-git checkout submission/round5
 
 # 2. Download checkpoint (~12 GB) from Cloudflare R2
 mkdir -p checkpoint
